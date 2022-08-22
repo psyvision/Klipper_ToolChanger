@@ -38,6 +38,9 @@ class Tool:
         self.shaper_damping_ratio_x = 0.1
         self.shaper_damping_ratio_y = 0.1
 
+        # Tool specific extrude factor
+        self.extrude_factor = 100.0
+
         # Under Development:
         HeatMultiplyerAtFullFanSpeed = 1    # Multiplier to be aplied to hotend temperature when fan is at maximum. Will be multiplied with fan speed. Ex. 1.1 at 205*C and fan speed of 40% will set temperature to 213*C
 
@@ -127,7 +130,7 @@ class Tool:
         self.shaper_type_x = config.get('shaper_type_x', pp_status['shaper_type_x'])                     
         self.shaper_type_y = config.get('shaper_type_y', pp_status['shaper_type_y'])                     
         self.shaper_damping_ratio_x = config.get('shaper_damping_ratio_x', pp_status['shaper_damping_ratio_x'])                     
-        self.shaper_damping_ratio_y = config.get('shaper_damping_ratio_y', pp_status['shaper_damping_ratio_y'])                     
+        self.shaper_damping_ratio_y = config.get('shaper_damping_ratio_y', pp_status['shaper_damping_ratio_y'])                
 
         ##### Standby settings #####
         if self.extruder is not None:
@@ -274,6 +277,9 @@ class Tool:
             self.gcode.respond_info("Pickup: " + cmd)
             self.gcode.run_script_from_command(cmd)
 
+        # Set Tool extrude factor override
+        self.gcode.run_script_from_command("M221 S%f" % (self.extrude_factor))
+
         # Save current picked up tool and print on screen.
         self.toollock.SaveCurrentTool(self.name)
         self.gcode.run_script_from_command("M117 T%d picked up." % (self.name))
@@ -323,6 +329,12 @@ class Tool:
                 self.offset[2] = float(self.offset[2]) + float(kwargs[i])
 
         self.gcode.respond_info("T%d offset now set to: %f, %f, %f." % (int(self.name), float(self.offset[0]), float(self.offset[1]), float(self.offset[2])))
+
+    def set_extrude_factor(self, factor):
+        self.extrude_factor = factor
+        
+        self.gcode.run_script_from_command("M221 S%f" % (self.extrude_factor))
+        self.gcode.respond_info("T%d extrude factor now set to: %f." % (int(self.name), float(self.extrude_factor)))
 
     def set_heater(self, **kwargs):
         if self.extruder is None:
@@ -404,7 +416,8 @@ class Tool:
             "shaper_type_x": self.shaper_type_x,
             "shaper_type_y": self.shaper_type_y,
             "shaper_damping_ratio_x": self.shaper_damping_ratio_x,
-            "shaper_damping_ratio_y": self.shaper_damping_ratio_y
+            "shaper_damping_ratio_y": self.shaper_damping_ratio_y,
+            "extrude_factor": self.extrude_factor
         }
         return status
 

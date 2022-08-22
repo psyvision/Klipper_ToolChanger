@@ -289,6 +289,18 @@ class ToolLock:
         if len(set_offset_cmd) > 0:
             tool.set_offset(**set_offset_cmd)
 
+    cmd_SET_TOOL_EXTRUDE_FACTOR_help = "Set the tool extrude factor"
+    def cmd_SET_TOOL_EXTRUDE_FACTOR(self, gcmd):
+        tool_id = gcmd.get_int('TOOL', self.tool_current, minval=0)
+        factor = gcmd.get_float('FACTOR', None)
+
+        if tool_id < 0:
+            self.gcode.respond_info("cmd_SET_TOOL_EXTRUDE_FACTOR: Tool " + str(tool_id) + " is not valid.")
+            return None
+
+        tool = self.printer.lookup_object("tool " + str(tool_id))
+        tool.set_extrude_factor(factor)
+
     cmd_SET_GLOBAL_OFFSET_help = "Set the global tool offset"
     def cmd_SET_GLOBAL_OFFSET(self, gcmd):
         x_pos = gcmd.get_float('X', None)
